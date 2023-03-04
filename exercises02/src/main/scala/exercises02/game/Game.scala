@@ -1,5 +1,7 @@
 package exercises02.game
 
+import scala.annotation.tailrec
+
 class Game(controller: GameController) {
 
   /**
