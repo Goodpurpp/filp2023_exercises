@@ -27,7 +27,7 @@ class Game(controller: GameController) {
         play(number)
       }
     } catch {
-      case ex: NumberFormatException => {
+      case _: NumberFormatException => {
         controller.wrongInput()
         play(number)
       }
