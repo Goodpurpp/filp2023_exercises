@@ -16,5 +16,22 @@ class Game(controller: GameController) {
     *
     * @param number загаданное число
     */
-  def play(number: Int): Unit = ???
+  def play(number: Int): Unit = {
+    controller.askNumber()
+    val quest = controller.nextLine()
+    try {
+      if (quest == "I give up") controller.giveUp(number)
+      else if (quest.toInt == number) controller.guessed()
+      else {
+        if (quest.toInt < number) controller.numberIsBigger() else controller.numberIsSmaller()
+        play(number)
+      }
+    } catch {
+      case ex: NumberFormatException => {
+        controller.wrongInput()
+        play(number)
+      }
+    }
+
+  }
 }
