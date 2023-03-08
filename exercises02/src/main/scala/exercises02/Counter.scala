@@ -8,7 +8,7 @@ object Counter {
   private final val numberPattern: Regex  = "([0-9]+).([0-9]+)|([0-9]+),([0-9]+)|([0-9]+)".r
 
   private def wordPatternOut(regexp: Regex, text: String): Map[String, Int] =
-    regexp.findAllIn(text).toArray.map(word => word).groupMapReduce(_.toLowerCase)(_ => 1)(_ + _)
+    regexp.findAllIn(text).toArray.groupMapReduce(_.toLowerCase)(_ => 1)(_ + _)
 
   /**
     * Посчитать количество вхождений слов в тексте
@@ -17,8 +17,7 @@ object Counter {
   def countWords(text: String): Map[String, Int] =
     text
       .split(splitterRegex)
-      .withFilter(word => word.nonEmpty)
-      .map(word => word)
+      .filter(_.nonEmpty) // убрал мап но оставил filter,у withFilter возвращается не Array
       .groupMapReduce(_.toLowerCase)(_ => 1)(_ + _)
 
   /**

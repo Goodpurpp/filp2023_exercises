@@ -18,22 +18,35 @@ class Game(controller: GameController) {
     *
     * @param number загаданное число
     */
-  def play(number: Int): Unit = {
+  @tailrec final def play(number: Int): Unit = {
     controller.askNumber()
-    val quest = controller.nextLine()
-    try {
-      if (quest == "I give up") controller.giveUp(number)
-      else if (quest.toInt == number) controller.guessed()
-      else {
-        if (quest.toInt < number) controller.numberIsBigger() else controller.numberIsSmaller()
-        play(number)
-      }
-    } catch {
-      case _: NumberFormatException => {
-        controller.wrongInput()
-        play(number)
+    if (!checks(number, controller.nextLine()))
+      play(number)
+  }
+  private def checks(number: Int, input: String): Boolean = {
+    if (input == GameController.IGiveUp) {
+      controller.giveUp(number)
+      true
+    } else {
+      input.toIntOption match {
+        case Some(x) => checkNumber(number, x)
+        case None =>
+          controller.wrongInput()
+          false
       }
     }
+  }
 
+  private def checkNumber(number: Int, numberInput: Int): Boolean = {
+    if (numberInput == number) {
+      controller.guessed()
+      true
+    } else {
+      if (number > numberInput)
+        controller.numberIsBigger()
+      else
+        controller.numberIsSmaller()
+      false
+    }
   }
 }
