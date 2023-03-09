@@ -29,24 +29,21 @@ class Game(controller: GameController) {
       true
     } else {
       input.toIntOption match {
-        case Some(x) => checkNumber(number, x)
+        case Some(x) =>
+          if (x == number) {
+            controller.guessed()
+            true
+          } else {
+            if (number > x)
+              controller.numberIsBigger()
+            else
+              controller.numberIsSmaller()
+            false
+          }
         case None =>
           controller.wrongInput()
           false
       }
-    }
-  }
-
-  private def checkNumber(number: Int, numberInput: Int): Boolean = {
-    if (numberInput == number) {
-      controller.guessed()
-      true
-    } else {
-      if (number > numberInput)
-        controller.numberIsBigger()
-      else
-        controller.numberIsSmaller()
-      false
     }
   }
 }
