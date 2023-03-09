@@ -5,7 +5,7 @@ import scala.util.matching.Regex
 //
 //()]+
 object Counter {
-  private final val splitterRegex: Regex         = "([A-z]+-[a-z]+)|([A-z]+'[a-z]+)|([A-z]+)|([А-я]+)".r
+  private final val splitterRegex: Regex  = "([A-z]+-[a-z]+)|([A-z]+'[a-z]+)|([A-z]+)|([А-я]+)".r
   private final val englishPattern: Regex = "([A-z]+[-|'][A-z]+)|([A-z]+)".r
   private final val numberPattern: Regex  = "([0-9]+).([0-9]+)|([0-9]+),([0-9]+)|([0-9]+)".r
 
@@ -16,7 +16,7 @@ object Counter {
     * Посчитать количество вхождений слов в тексте
     * слово отделено символами [\s.,!?:\n\t\r]
     */
-  def countWords(text: String): Map[String, Int] = wordPatternOut(splitterRegex,text)
+  def countWords(text: String): Map[String, Int] = wordPatternOut(splitterRegex, text)
 //    text
 //      .split(splitterRegex)
 //      .filter(_.nonEmpty) // убрал мап но оставил filter,у withFilter возвращается не Array
