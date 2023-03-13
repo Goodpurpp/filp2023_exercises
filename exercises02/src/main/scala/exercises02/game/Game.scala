@@ -20,29 +20,25 @@ class Game(controller: GameController) {
     */
   @tailrec final def play(number: Int): Unit = {
     controller.askNumber()
-    if (!checks(number, controller.nextLine()))
-      play(number)
-  }
-  private def checks(number: Int, input: String): Boolean = {
+    val input = controller.nextLine()
     if (input == GameController.IGiveUp) {
       controller.giveUp(number)
-      true
     } else {
       input.toIntOption match {
         case Some(x) =>
           if (x == number) {
             controller.guessed()
-            true
           } else {
             if (number > x)
               controller.numberIsBigger()
-            else
+            else {
               controller.numberIsSmaller()
-            false
+            }
+            play(number)
           }
         case None =>
           controller.wrongInput()
-          false
+          play(number)
       }
     }
   }

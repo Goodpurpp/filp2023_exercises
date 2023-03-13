@@ -17,10 +17,6 @@ object Counter {
     * слово отделено символами [\s.,!?:\n\t\r]
     */
   def countWords(text: String): Map[String, Int] = wordPatternOut(splitterRegex, text)
-//    text
-//      .split(splitterRegex)
-//      .filter(_.nonEmpty) // убрал мап но оставил filter,у withFilter возвращается не Array
-//      .groupMapReduce(_.toLowerCase)(_ => 1)(_ + _)
 
   /**
     * Посчитать количество вхождений английских слов в тексте
