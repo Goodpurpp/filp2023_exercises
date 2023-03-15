@@ -6,12 +6,12 @@ object Game {
       input.toInt match {
         case x if x < number => NumberIsBigger
         case x if x > number => NumberIsSmaller
-        case _ => Guessed
+        case _               => Guessed
       }
     } else {
       input match {
         case "I give up" => GiveUp
-        case _ => WrongInput
+        case _           => WrongInput
       }
     }
   }

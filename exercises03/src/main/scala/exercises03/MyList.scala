@@ -11,7 +11,7 @@ case object Nil extends MyList[Nothing]
 object MyList {
   def sum(list: MyList[Int]): Int = summaryList(list)
 
-  def reverse[A](list: MyList[A]): MyList[A] = reversedList(list,Nil)
+  def reverse[A](list: MyList[A]): MyList[A] = reversedList(list, Nil)
 
   @tailrec
   private def summaryList(a: MyList[Int], acc: Int = 0): Int = a match {
