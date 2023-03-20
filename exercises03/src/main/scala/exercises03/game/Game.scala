@@ -17,12 +17,11 @@ object Game {
   }
 
   def action(state: State, number: Int): GameController => Unit = state match {
-    case GiveUp          => controller => controller.giveUp(number)
-    case Guessed         => controller => controller.guessed()
-    case NumberIsBigger  => controller => controller.numberIsBigger()
-    case NumberIsSmaller => controller => controller.numberIsSmaller()
-    case WrongInput      => controller => controller.wrongInput()
-    case _               => controller => controller.nextLine()
+    case GiveUp          => _.giveUp(number)
+    case Guessed         => _.guessed()
+    case NumberIsBigger  => _.numberIsBigger()
+    case NumberIsSmaller => _.numberIsSmaller()
+    case WrongInput      => _.wrongInput()
   }
 
   def completed(state: State): Boolean =
