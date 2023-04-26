@@ -2,52 +2,52 @@ package service
 
 import cats.effect.IO
 import cats.syntax.all._
-import service.TwitterService
 import service.domain.GetTweetResponse.{Found, NotFound}
 import service.domain._
-import twitter.TwitterApi
+
 import twitter.domain.TwitterError._
+import twitter.TwitterApi
 import twitter.domain._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 // Воспользуйтесь синтаксисом map, recover, traverse из cats.syntax.all_
 class TwitterServiceIO(api: TwitterApi) extends TwitterService[IO] {
   def tweet(user: User, text: String): IO[TweetId] = {
-    io[TweetId](api.tweet(user, text))
+
+    IO.async_(cb => api.tweet(user, text)(x => cb(x.toEither)))
   }
 
   def like(user: User, tweetId: TweetId): IO[Unit] = {
-    io[Unit](api.like(user, tweetId)).recover {
-      case LikeAlreadyExistError => ()
+    IO.async_((cb: Either[Throwable, Unit] => Unit) => api.like(user, tweetId)(x => cb(x.toEither))).recover {
+      case LikeAlreadyExistError => Right()
     }
   }
 
-  def unlike(user: User, tweetId: TweetId): IO[Unit] = {
-    io(api.unlike(user, tweetId)).recover {
-      case LikeNotExistError => ()
+  def unlike(user: User, tweetId: TweetId): IO[Unit] =
+    IO.async_((cb: Either[Throwable, Unit] => Unit) => api.unlike(user, tweetId)(x => cb(x.toEither))).recover {
+      case LikeNotExistError => Right()
     }
-  }
 
-  def getTweet(tweetId: TweetId): IO[GetTweetResponse] = {
-    io[TweetInfo](api.get(tweetId)).redeem(_ => NotFound(tweetId), x => Found(x))
-  }
-
-  def io[T](f: (Try[T] => Unit) => Unit): IO[T] = {
-    IO.async(cb => f(cb.compose(_.toEither)))
-  }
-
-  def getTweets(ids: List[TweetId]): IO[GetTweetsResponse] =
-    ids
-      .traverse(getTweet)
-      .map(x =>
-        x.foldLeft(GetTweetsResponse(Set.empty[TweetId], Set.empty[TweetInfo]))((tweetsResponse, current) => {
-          val notFound = tweetsResponse.notFound
-          val found    = tweetsResponse.found
-          current match {
-            case Found(v)    => GetTweetsResponse(notFound, found + v)
-            case NotFound(v) => GetTweetsResponse(notFound + v, found)
-          }
+  def getTweet(tweetId: TweetId): IO[GetTweetResponse] =
+    IO.async_(cb =>
+      api.get(tweetId)(x =>
+        cb(x match {
+          case Success(value) => Right(Found(value))
+          case Failure(_)     => Right(NotFound(tweetId))
         })
       )
+    )
+
+  def getTweets(ids: List[TweetId]): IO[GetTweetsResponse] =
+    for {
+      tweets <- ids.traverse(getTweet)
+      res = tweets.foldLeft(GetTweetsResponse(Set.empty[TweetId], Set.empty[TweetInfo]))((acc, elem) =>
+        elem match {
+          case Found(info)  => acc.copy(found = acc.found + info)
+          case NotFound(id) => acc.copy(notFound = acc.notFound + id)
+        }
+      )
+    } yield res
+
 }

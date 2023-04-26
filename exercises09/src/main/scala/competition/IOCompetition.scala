@@ -1,42 +1,20 @@
 package competition
 
 import cats.syntax.all._
-import cats.effect.{ContextShift, IO, IOApp}
+import cats.effect.{IO, IOApp}
 import competition.domain.ScenarioError.TopAuthorNotFound
 import service.TwitterService
 import twitter.domain._
 
-import scala.concurrent.Future
-
-/**
- * Конкурс! Кто наберет больше лайков под своим постом - тот победил
- *
- * Каждый пользовать постит твит "${user.id} will win!", и его фолловеры его лайкают
- * юзеры постят твиты параллельно, и так же параллельно их лайкают фолловеры
- *
- * Но случилась беда: пользователь с именем bot нарушил правила конкурса, и все его лайки надо удалить
- *
- * В конце надо вывести победителя
- * Если победителей несколько, то того, у которого твит был раньше
- * Если победителей нет, то вернуть ошибку TopAuthorNotFound
- *
- * используйте методы
- * CompetitionMethods.unlikeAll
- * CompetitionMethods.topAuthor
- */
-class IOCompetition(service: TwitterService[IO], methods: CompetitionMethods[IO])(implicit cs: ContextShift[IO])
-  extends Competition[IO] {
+class IOCompetition(service: TwitterService[IO], methods: CompetitionMethods[IO]) extends Competition[IO] {
   def winner(users: List[User], followers: Map[User, List[User]], botUser: User): IO[User] =
     for {
-      tweetIds <- users.parTraverse(user =>
-        service
-          .tweet(user, s"${user.id} will win!")
-          .flatMap(id => followers(user).parTraverse(service.like(_, id)).map(_ => id))
-      )
-      _      <- methods.unlikeAll(botUser, tweetIds)
-      winner <- methods.topAuthor(tweetIds)
-      option <- IO.fromOption(winner)(TopAuthorNotFound)
-    } yield option
+      tweetsIds <- users.parTraverse(x => service.tweet(x, f"${x.id} will win!").map(y => (x, y)))
+      _         <- tweetsIds.parTraverse(x => followers(x._1).parTraverse(service.like(_, x._2)))
+      _         <- methods.unlikeAll(botUser, tweetsIds.map(x => x._2))
+      user      <- methods.topAuthor(tweetsIds.map(x => x._2))
+      winner    <- IO.fromOption(user)(TopAuthorNotFound)
+    } yield winner
 }
 
 object IOCompetitionRun extends IOApp {
